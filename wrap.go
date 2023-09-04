@@ -55,7 +55,7 @@ func (f *Fzf) Match(pattern string) []*MatchResult {
 	for i := range f.targets {
 		t := f.targets[i]
 		chars := util.ToChars([]byte(t))
-		r, _ := algo.FuzzyMatchV2(
+		r, pos := algo.FuzzyMatchV2(
 			f.casesensitive,
 			f.normalize,
 			true,
@@ -70,6 +70,7 @@ func (f *Fzf) Match(pattern string) []*MatchResult {
 		results = append(results, &MatchResult{
 			content: &t,
 			score:   r.Score,
+			pos:     pos,
 		})
 	}
 	return results

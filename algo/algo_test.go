@@ -42,7 +42,7 @@ func assertMatch2(t *testing.T, fun Algo, caseSensitive, normalize, forward bool
 func TestHowToUse(t *testing.T) {
 	input := "1st line"
 	chars := util.ToChars([]byte(input))
-	query := "x"
+	query := "stn"
 	res, pos := FuzzyMatchV2(false, false, true, &chars, []rune(query), true, nil)
 	t.Logf("%+v", res)
 	t.Logf("%+v", pos)
