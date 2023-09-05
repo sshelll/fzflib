@@ -1,6 +1,8 @@
 package fzflib
 
 import (
+	"unicode"
+
 	"github.com/sshelll/fzflib/algo"
 	"github.com/sshelll/fzflib/util"
 )
@@ -57,6 +59,13 @@ func (f *Fzf) Match(pattern string) []*MatchResult {
 
 // MergeMatch merges the case-sensitive and case-insensitive results.
 func (f *Fzf) MergeMatch(pattern string) []*MatchResult {
+	hasUpper := false
+	for _, c := range pattern {
+		if unicode.IsUpper(c) {
+			hasUpper = true
+			break
+		}
+	}
 	r1 := f.match(pattern, true)
 	r2 := f.match(pattern, false)
 	rset := make(map[string]*MatchResult, len(r2))
@@ -68,7 +77,8 @@ func (f *Fzf) MergeMatch(pattern string) []*MatchResult {
 		r := r2[i]
 		if _, ok := rset[r.Content()]; !ok {
 			rset[r.Content()] = r
-		} else {
+		} else if hasUpper {
+			// only add two scores when users input upper chars
 			rset[r.Content()].score += r.score
 		}
 	}
