@@ -51,12 +51,41 @@ func (f *Fzf) Clear() *Fzf {
 }
 
 func (f *Fzf) Match(pattern string) []*MatchResult {
+	results := f.match(pattern, f.casesensitive)
+	return results
+}
+
+// MergeMatch merges the case-sensitive and case-insensitive results.
+func (f *Fzf) MergeMatch(pattern string) []*MatchResult {
+	r1 := f.match(pattern, true)
+	r2 := f.match(pattern, false)
+	rset := make(map[string]*MatchResult, len(r2))
+	for i := range r1 {
+		r := r1[i]
+		rset[r.Content()] = r
+	}
+	for i := range r2 {
+		r := r2[i]
+		if _, ok := rset[r.Content()]; !ok {
+			rset[r.Content()] = r
+		} else {
+			rset[r.Content()].score += r.score
+		}
+	}
+	results := make([]*MatchResult, 0, len(rset))
+	for k := range rset {
+		results = append(results, rset[k])
+	}
+	return results
+}
+
+func (f *Fzf) match(pattern string, csensitive bool) []*MatchResult {
 	results := []*MatchResult{}
 	for i := range f.targets {
 		t := f.targets[i]
 		chars := util.ToChars([]byte(t))
 		r, pos := algo.FuzzyMatchV2(
-			f.casesensitive,
+			csensitive,
 			f.normalize,
 			true,
 			&chars,

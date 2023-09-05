@@ -4,7 +4,7 @@ import "testing"
 
 func TestWrap(t *testing.T) {
 	fzf := New().CaseSensitive(false).Normalize(true)
-	fzf.AppendTargets("foo", "bar", "baz")
+	fzf.AppendTargets("foo", "bar", "baz", "FOOBaz")
 	for _, r := range fzf.Match("o") {
 		t.Log(r.Content(), r.Score(), r.Pos())
 	}
@@ -14,6 +14,14 @@ func TestWrap(t *testing.T) {
 	}
 	t.Log("----")
 	for _, r := range fzf.Match("z") {
+		t.Log(r.Content(), r.Score(), r.Pos())
+	}
+	t.Log("----")
+	for _, r := range fzf.Match("F") {
+		t.Log(r.Content(), r.Score(), r.Pos())
+	}
+	t.Log("----")
+	for _, r := range fzf.MergeMatch("F") {
 		t.Log(r.Content(), r.Score(), r.Pos())
 	}
 }
