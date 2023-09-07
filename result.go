@@ -4,6 +4,7 @@ type MatchResult struct {
 	content *string
 	score   int
 	pos     *[]int
+	item    *Item
 }
 
 func (r *MatchResult) Content() string {
@@ -19,4 +20,8 @@ func (r *MatchResult) Pos() []int {
 		return []int{}
 	}
 	return *r.pos
+}
+
+func (r *MatchResult) Item() *Item {
+	return r.item
 }

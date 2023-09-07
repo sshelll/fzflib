@@ -7,8 +7,14 @@ import (
 	"github.com/sshelll/fzflib/util"
 )
 
+type Item struct {
+	Content string
+	Any     any
+}
+
 type Fzf struct {
 	targets       []string
+	items         []*Item
 	casesensitive bool
 	normalize     bool
 	forward       bool
@@ -47,11 +53,17 @@ func (f *Fzf) AppendTargets(inputs ...string) *Fzf {
 	return f
 }
 
+func (f *Fzf) AppendItems(items ...*Item) *Fzf {
+	f.items = append(f.items, items...)
+	return f
+}
+
 func (f *Fzf) Clear() *Fzf {
 	f.targets = []string{}
 	return f
 }
 
+// Match matches the pattern with targets(string slice).
 func (f *Fzf) Match(pattern string) []*MatchResult {
 	results := f.match(pattern, f.casesensitive)
 	return results
@@ -59,6 +71,23 @@ func (f *Fzf) Match(pattern string) []*MatchResult {
 
 // MergeMatch merges the case-sensitive and case-insensitive results.
 func (f *Fzf) MergeMatch(pattern string) []*MatchResult {
+	results := f.mergeMatch(pattern, f.match)
+	return results
+}
+
+// MatchItem matches the pattern with items, see Item struct.
+func (f *Fzf) MatchItem(pattern string) []*MatchResult {
+	results := f.matchItem(pattern, f.casesensitive)
+	return results
+}
+
+// MergeMatchItem merges the case-sensitive and case-insensitive results.
+func (f *Fzf) MergeMatchItem(pattern string) []*MatchResult {
+	results := f.mergeMatch(pattern, f.matchItem)
+	return results
+}
+
+func (f *Fzf) mergeMatch(pattern string, matchFn func(string, bool) []*MatchResult) []*MatchResult {
 	hasUpper := false
 	for _, c := range pattern {
 		if unicode.IsUpper(c) {
@@ -66,8 +95,8 @@ func (f *Fzf) MergeMatch(pattern string) []*MatchResult {
 			break
 		}
 	}
-	r1 := f.match(pattern, true)
-	r2 := f.match(pattern, false)
+	r1 := matchFn(pattern, true)
+	r2 := matchFn(pattern, false)
 	rset := make(map[string]*MatchResult, len(r2))
 	for i := range r1 {
 		r := r1[i]
@@ -110,6 +139,32 @@ func (f *Fzf) match(pattern string, csensitive bool) []*MatchResult {
 			content: &t,
 			score:   r.Score,
 			pos:     pos,
+		})
+	}
+	return results
+}
+
+func (f *Fzf) matchItem(pattern string, csensitive bool) []*MatchResult {
+	results := []*MatchResult{}
+	for i := range f.items {
+		t := f.items[i]
+		chars := util.ToChars([]byte(t.Content))
+		r, pos := algo.FuzzyMatchV2(
+			csensitive,
+			f.normalize,
+			true,
+			&chars,
+			[]rune(pattern),
+			true,
+			nil,
+		)
+		if r.Score == 0 {
+			continue
+		}
+		results = append(results, &MatchResult{
+			score: r.Score,
+			pos:   pos,
+			item:  t,
 		})
 	}
 	return results
