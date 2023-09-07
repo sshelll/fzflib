@@ -162,9 +162,10 @@ func (f *Fzf) matchItem(pattern string, csensitive bool) []*MatchResult {
 			continue
 		}
 		results = append(results, &MatchResult{
-			score: r.Score,
-			pos:   pos,
-			item:  t,
+			content: &t.Content,
+			score:   r.Score,
+			pos:     pos,
+			item:    t,
 		})
 	}
 	return results

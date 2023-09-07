@@ -38,4 +38,8 @@ func TestMatchItem(t *testing.T) {
 		item := r.Item()
 		t.Log(item.Content, item.Any, r.Score(), r.Pos())
 	}
+	t.Log("----")
+	for _, r := range fzf.MergeMatchItem("F") {
+		t.Log(r.Content(), r.Score(), r.Pos())
+	}
 }
